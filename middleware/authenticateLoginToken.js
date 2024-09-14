@@ -31,6 +31,7 @@ const authenticateLoginToken = (req, res, next) => {
         }
       }
       req.userId = decoded.userId
+      req.username = decoded.username
       next();
     });
   } catch (error) {
