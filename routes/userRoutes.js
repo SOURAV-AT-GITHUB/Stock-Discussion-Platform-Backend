@@ -73,7 +73,7 @@ userRouter.put(
       });
     } catch (error) {
       return res.status(500).json({
-        message: "At catch",
+        message: "Internal server error, try again!",
       });
     } finally {
       if (req.file.path) fs.unlinkSync(req.file.path); //Deleting the image from local server
