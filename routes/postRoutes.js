@@ -137,9 +137,10 @@ postRouter.post("/:id/comments", authenticateLoginToken,async (req, res) => {
   }
 });
 
-postRouter.delete("/:id/comments/:commentId",async(req,res)=>{
+postRouter.delete("/:id/comments/:commentId",authenticateLoginToken,async(req,res)=>{
   const {id,commentId} = req.params
 
+  
   try {
     const post = await PostModel.findById(id)
     if (!post){
@@ -148,14 +149,14 @@ postRouter.delete("/:id/comments/:commentId",async(req,res)=>{
         message:"Post not found"
       })
     }
-    const comment =await  CommentModel.findById(commentId)
+    const comment = await CommentModel.findById(commentId)
     if(!comment){
       return res.status(404).json({
         success:false,
         message:"Comment not found"
       })
     }
-    if(!(req.userId == post.userId) || !(req.userId === comment.userId)){
+    if((req.userId != post.userId) && (req.userId != comment.userId)){
       return res.status(401).json({
         success:false,
         message:"Only post author or comment author can delete the comment"
@@ -170,9 +171,87 @@ postRouter.delete("/:id/comments/:commentId",async(req,res)=>{
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Internal server error, please try again!!",
+      message: "Internal server error, please try again!! at delete comment"
     });
   }
   
+})
+
+postRouter.post("/:postId/like",authenticateLoginToken,async(req,res)=>{
+  const {postId} = req.params
+  
+  try {
+    const post = await PostModel.findById(postId);
+    console.log(post);
+    if (!post){
+      return res.status(404).json({
+        success:false,
+        message:"Post not found"
+      })
+    }
+
+    const likeResponse = await PostModel.updateOne(
+      { _id: postId },
+      { $addToSet: { likes: req.userId } } // Use $addToSet to avoid duplicate likes
+    );
+    if (likeResponse.acknowledged) {
+      if (likeResponse.modifiedCount === 1) {
+        return res.status(200).json({ success: true, message: 'Post liked' }) 
+      }
+      else{
+        return res.status(409).json({ success: false, message: "You've already liked this post" }) 
+      }
+    }
+    else{
+      res.status(400).json({
+        success: false, message: 'Failed to like the post'
+      })
+    }
+    
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error, please try again!!",
+    });
+  }
+})
+
+postRouter.delete("/:postId/like",authenticateLoginToken,async (req,res)=>{
+  const {postId} = req.params
+  try {
+    const post = await PostModel.findById(postId);
+    if (!post){
+      return res.status(404).json({
+        success:false,
+        message:"Post not found"
+      })
+    }
+
+    const unlikeResponse = await PostModel.updateOne(
+      { _id: postId },
+      { $pull: { likes: req.userId } } // Use $pull to remove the like
+    );
+    console.log(unlikeResponse);
+    
+    if (unlikeResponse.acknowledged) {
+      if (unlikeResponse.modifiedCount === 1) {
+        return res.status(200).json({ success: true, message: 'Post inliked' }) 
+      }
+      else{
+        return res.status(409).json({ success: false, message: "You didn't liked this post previously" }) 
+      }
+    }
+    else{
+      res.status(400).json({
+        success: false, message: 'Failed to unlike the post'
+      })
+    }
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error, please try again!!",
+    });
+  }
 })
 module.exports = postRouter;
