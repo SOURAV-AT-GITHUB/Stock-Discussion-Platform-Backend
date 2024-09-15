@@ -1,7 +1,7 @@
 # Stock-Discussion-Platform-Backend
 
 ## .env setup
- Create a .env file, inside that -
+#### Create a .env file, inside that -
       1. PORT = <Add port number (default is 3000)>
       2. DB_URL = <MongoDB URL with username and password included>
       3.JWT_SECRET = <Secret key to create and verify login tokens>
