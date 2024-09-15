@@ -7,6 +7,7 @@ const postSchema = mongoose.Schema({
       tags:{type:[String],required:true},
       author:{type:String,required:true},
       username:{type:String,required:true},
+      likes: {type:[String]},
       createdAt:{type:Date,default:Date.now()}
 })
 
